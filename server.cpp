@@ -24,6 +24,7 @@ struct Neighbor {
 
 int main(int argc, char *argv[])
 { 
+   printf("Server Started! \n");
    int s, b, l, fd, sa, bytes, on = 1;
    char buf[BUF_SIZE];  /* buffer for outgoing file */
    struct sockaddr_in channel;  /* holds IP address */
