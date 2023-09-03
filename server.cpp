@@ -1,26 +1,38 @@
-/* This is the server code */
+#include <sys/fcntl.h>
+#include <vector>
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 
 #define SERVER_PORT 8080  /* arbitrary, but client & server must agree*/
 #define BUF_SIZE 4096  /* block transfer size */
 #define QUEUE_SIZE 10
+
+struct Message {
+    int opcode;
+    char data[256];
+};
+
+struct Neighbor {
+    int id;
+    int x, y, z;  // coordenadas
+};
 
 int main(int argc, char *argv[])
 { 
    int s, b, l, fd, sa, bytes, on = 1;
    char buf[BUF_SIZE];  /* buffer for outgoing file */
    struct sockaddr_in channel;  /* holds IP address */
+   
+   std::vector<int> client_sockets;  // Lista para armazenar os soquetes dos clientes conectados
+   std::vector<Neighbor> neighbors;
+
    /* Build address structure to bind to socket. */
    memset(&channel, 0, sizeof(channel));
-   /* zero channel */
    channel.sin_family = AF_INET;
    channel.sin_addr.s_addr = htonl(INADDR_ANY);
    channel.sin_port = htons(SERVER_PORT);
@@ -39,17 +51,38 @@ int main(int argc, char *argv[])
       sa = accept(s, 0, 0); /* block for connection request */
       if (sa < 0) {printf("accept failed"); exit(-1);}
 
-      read(sa, buf, BUF_SIZE); /* read file name from socket */
+      client_sockets.push_back(sa);  // Adicione o novo cliente à lista
+      
+      Message firstMsg;
+      firstMsg.opcode = 1;  // Opcode para "Quem está aí?"
+      strcpy(firstMsg.data, "");
 
-      /* Get and return the file. */
-      fd = open(buf, O_RDONLY); /* open the file to be sent back */
-      if (fd < 0) printf("open failed");
-      while (1) {
-         bytes = read(fd, buf, BUF_SIZE); /* read from file */
-         if (bytes <= 0) break;  /* check for end of file */
-         write(sa, buf, bytes);  /* write bytes to socket */
+      for (int client_socket : client_sockets) {
+         write(client_socket, &firstMsg, sizeof(firstMsg));
       }
-      close(fd); /* close file */
+
+      Message msg;
+      read(sa, &msg, sizeof(Message));
+
+      switch (msg.opcode) {
+            case 1:  // Quem está aí?
+               {
+                  // Suponha que msg.data contém "id=1;x=10;y=20;z=30"
+                  Neighbor new_neighbor;
+                  sscanf(msg.data, "id=%d;x=%d;y=%d;z=%d", &new_neighbor.id, &new_neighbor.x, &new_neighbor.y, &new_neighbor.z);
+                  neighbors.push_back(new_neighbor);
+               }
+                break;
+            case 2:  // Solicitar mais dados
+                // Responder com velocidade
+                break;
+            case 3:  // Reposicionar
+                // Executar a ordem e responder com confirmação ou erro
+                break;
+            default:
+                // Código de operação desconhecido
+                break;
+        }/* close file */
       close(sa); /* close connection */
    }   
 }
