@@ -25,6 +25,8 @@ struct Neighbor {
    float vx, vy, vz;
 };
 
+
+
 void UpdateNeighbor(std::vector<Neighbor>& neighbors, const Neighbor& updated_neighbor) {
     // Procura pelo drone com o ID especificado
     auto it = std::find_if(neighbors.begin(), neighbors.end(), [&updated_neighbor](const Neighbor& n) {
@@ -122,42 +124,16 @@ void handleUserInput(std::vector<int>& client_sockets) {
     }
 }
 
-int main(int argc, char *argv[])
-{ 
-   printf("Server Started! \n");
-   int s, b, l, fd, sa, bytes, on = 1;
-   struct sockaddr_in channel;
-   
-   std::vector<int> client_sockets;
-   std::vector<Neighbor> neighbors;
-
-   memset(&channel, 0, sizeof(channel));
-   channel.sin_family = AF_INET;
-   channel.sin_addr.s_addr = htonl(INADDR_ANY);
-   channel.sin_port = htons(SERVER_PORT);
-
-   s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-   if (s < 0) {printf("socket call failed"); exit(-1);}
-   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
-   
-   b = bind(s, (struct sockaddr *) &channel, sizeof(channel));
-   if (b < 0) {printf("bind failed"); exit(-1);}
-   
-   l = listen(s, QUEUE_SIZE);
-   if (l < 0) {printf("listen failed"); exit(-1);}
-   std::thread userInputThread(handleUserInput, std::ref(client_sockets));
-   while (1) {
-      sa = accept(s, 0, 0);
-      if (sa < 0) {printf("accept failed"); exit(-1);}
-      printf("sa = %d\n", sa);
-      client_sockets.push_back(sa);
-      Message msg;
-      int bytesRead = read(sa, &msg, sizeof(Message));
-      if (bytesRead <= 0) {
-         printf("Client disconnected or error occurred.\n");
-         break;
-      }
-      switch (msg.opcode) {
+void handleClient(int sa, std::vector<Neighbor>& neighbors) {
+    while (true) {
+        Message msg;
+        int bytesRead = read(sa, &msg, sizeof(Message));
+        if (bytesRead <= 0) {
+            printf("Client disconnected or error occurred.\n");
+            close(sa);
+            return;
+        }
+        switch (msg.opcode) {
          case 1: {
             Neighbor new_neighbor;
             new_neighbor.id = msg.msg1_client.droneId;
@@ -195,7 +171,47 @@ int main(int argc, char *argv[])
                // Código de operação desconhecido
                break;
       }
-      close(sa); /* close connection */
+    }
+}
+
+int main(int argc, char *argv[])
+{ 
+   printf("Server Started! \n");
+   int s, b, l, fd, sa, bytes, on = 1;
+   struct sockaddr_in channel;
+   
+   std::vector<int> client_sockets;
+   std::vector<Neighbor> neighbors;
+   std::vector<std::thread> client_threads;
+
+   memset(&channel, 0, sizeof(channel));
+   channel.sin_family = AF_INET;
+   channel.sin_addr.s_addr = htonl(INADDR_ANY);
+   channel.sin_port = htons(SERVER_PORT);
+
+   s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   if (s < 0) {printf("socket call failed"); exit(-1);}
+   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
+   
+   b = bind(s, (struct sockaddr *) &channel, sizeof(channel));
+   if (b < 0) {printf("bind failed"); exit(-1);}
+   
+   l = listen(s, QUEUE_SIZE);
+   if (l < 0) {printf("listen failed"); exit(-1);}
+   std::thread userInputThread(handleUserInput, std::ref(client_sockets));
+   while (1) {
+      sa = accept(s, 0, 0);
+      if (sa < 0) {printf("accept failed"); exit(-1);}
+      printf("sa = %d\n", sa);
+      client_sockets.push_back(sa);
+      Message msg;
+      int bytesRead = read(sa, &msg, sizeof(Message));
+      if (bytesRead <= 0) {
+         printf("Client disconnected or error occurred.\n");
+         break;
+      }
+      client_threads.push_back(std::thread(handleClient, sa, std::ref(neighbors)));
+      
    }
    userInputThread.join();
 }
