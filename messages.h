@@ -9,7 +9,6 @@ struct Msg1_ClientResponse {
     int opcode;  // 1
     int droneId;
     float x, y, z;
-    float vx, vy, vz;
 };
 
 struct Msg2_Server {
@@ -19,6 +18,8 @@ struct Msg2_Server {
 
 struct Msg2_ClientResponse {
     int opcode;  // 2
+    int droneId;
+    float x, y, z;
     float vx, vy, vz;
 };
 

@@ -92,21 +92,48 @@ int main(int argc, char **argv)
       if (bytes <= 0) exit(0);
       printf("opcode = %d\n", msg.opcode);
       switch (msg.opcode) {
-          case 1:  // "Quem está aí?"
-              {
-                  Message response;
-                  response.msg1_client.opcode = 1;
-                  response.msg1_client.droneId = clientInfo.id;
-                  response.msg1_client.x = clientInfo.x;
-                  response.msg1_client.y = clientInfo.y;
-                  response.msg1_client.z = clientInfo.z;
-                  response.msg1_client.vx = clientInfo.vx;
-                  response.msg1_client.vy = clientInfo.vy;
-                  response.msg1_client.vz = clientInfo.vz;
-                  write(s, &response, sizeof(response));
-              }
-              break;
-          // ... (outros casos)
+        case 1:  // "Quem está aí?"
+        {
+            Message response;
+            response.opcode = 1;
+            response.msg1_client.droneId = clientInfo.id;
+            response.msg1_client.x = clientInfo.x;
+            response.msg1_client.y = clientInfo.y;
+            response.msg1_client.z = clientInfo.z;
+        //   response.msg1_client.vx = clientInfo.vx;
+        //   response.msg1_client.vy = clientInfo.vy;
+        //   response.msg1_client.vz = clientInfo.vz;
+            write(s, &response, sizeof(response));
+            break;
+        }
+        case 2:
+        {
+            Message response;
+            response.opcode = 2;
+            response.msg2_client.droneId = clientInfo.id;
+            response.msg2_client.x = clientInfo.x;
+            response.msg2_client.y = clientInfo.y;
+            response.msg2_client.z = clientInfo.z;
+            response.msg2_client.vx = clientInfo.vx;
+            response.msg2_client.vy = clientInfo.vy;
+            response.msg2_client.vz = clientInfo.vz;
+            write(s, &response, sizeof(response));
+            break;
+        }
+        case 3:
+        {
+            Message response;
+            response.opcode = 3;
+            if (msg.msg3_server.targetDroneId == clientInfo.id){
+                clientInfo.x += msg.msg3_server.dx;
+                clientInfo.y += msg.msg3_server.dy;
+                clientInfo.z += msg.msg3_server.dz;
+                response.msg3_client.success = true;
+            } 
+            else response.msg3_client.success = false;
+            write(s, &response, sizeof(response));
+            break;
+        }
       }
   }
 }
