@@ -22,19 +22,17 @@ struct Neighbor
    int id;
    int socketId;
    bool is_active;
-   float x, y, z; // coordenadas
+   float x, y, z;
    float vx, vy, vz;
 };
 
 void UpdateNeighbor(std::vector<Neighbor> &neighbors, const Neighbor &updated_neighbor)
 {
-   // Procura pelo drone com o ID especificado
    auto it = std::find_if(neighbors.begin(), neighbors.end(), [&updated_neighbor](const Neighbor &n)
                           { return n.id == updated_neighbor.id; });
 
    if (it != neighbors.end())
    {
-      // Drone encontrado, atualiza informações
       it->x = updated_neighbor.x;
       it->y = updated_neighbor.y;
       it->z = updated_neighbor.z;
@@ -44,7 +42,6 @@ void UpdateNeighbor(std::vector<Neighbor> &neighbors, const Neighbor &updated_ne
    }
    else
    {
-      // Drone não encontrado, emite um aviso
       printf("Warning: Drone with ID %d not found. Ignoring update.\n", updated_neighbor.id);
    }
 }
@@ -56,18 +53,16 @@ void UpdateOrInsertNeighbor(std::vector<Neighbor> &neighbors, const Neighbor &ne
 
    if (it != neighbors.end())
    {
-      // Drone encontrado, atualiza informações
       it->x = new_neighbor.x;
       it->y = new_neighbor.y;
       it->z = new_neighbor.z;
       it->vx = new_neighbor.vx;
       it->vy = new_neighbor.vy;
       it->vz = new_neighbor.vz;
-      it->is_active = true; // Marca como ativo
+      it->is_active = true;
    }
    else
    {
-      // Drone não encontrado, insere na lista
       neighbors.push_back(new_neighbor);
    }
 }
@@ -77,12 +72,12 @@ void handleUserInput(std::vector<int> &client_sockets)
    std::string userInput;
    while (true)
    {
-      std::getline(std::cin, userInput); // Ler uma linha inteira
+      std::getline(std::cin, userInput);
       std::istringstream iss(userInput);
       char command;
       int droneId;
       float dx, dy, dz;
-      iss >> command; // Ler o primeiro caractere (comando)
+      iss >> command;
       switch (command)
       {
       case '1':
@@ -98,7 +93,7 @@ void handleUserInput(std::vector<int> &client_sockets)
       case '2':
       {
          if (iss >> droneId)
-         { // Tentar ler o ID do drone
+         {
             Msg2_Server msg;
             msg.opcode = 2;
             msg.targetDroneId = droneId;
@@ -116,7 +111,7 @@ void handleUserInput(std::vector<int> &client_sockets)
       case '3':
       {
          if (iss >> droneId >> dx >> dy >> dz)
-         { // Tentar ler o ID do drone e os deslocamentos
+         {
             Msg3_Server msg;
             msg.opcode = 3;
             msg.targetDroneId = droneId;
@@ -171,7 +166,7 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
       case 2:
       {
          Neighbor updated_neighbor;
-         updated_neighbor.id = msg.msg2_client.droneId; // Supondo que msg2_client contém esses campos
+         updated_neighbor.id = msg.msg2_client.droneId;
          updated_neighbor.x = msg.msg2_client.x;
          updated_neighbor.y = msg.msg2_client.y;
          updated_neighbor.z = msg.msg2_client.z;
@@ -185,14 +180,14 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          break;
       }
       break;
-      case 3: // Reposicionar
+      case 3:
          if (msg.msg3_client.success)
             printf("Reposicionamento realizado com sucesso!\n");
          else
             printf("Falha no reposicionamento");
          break;
       default:
-         // Código de operação desconhecido
+         printf("Comando desconhecido \n");
          break;
       }
    }

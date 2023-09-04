@@ -11,8 +11,7 @@
 #include <string>
 #include "messages.h"
 
-#define SERVER_PORT 8080 /* arbitrary, but client & server must agree */
-#define BUFSIZE 4096     /* block transfer size */
+#define SERVER_PORT 8080
 
 struct ClientInfo
 {
@@ -39,9 +38,8 @@ ClientInfo parseArguments(int argc, char **argv)
 int main(int argc, char **argv)
 {
     int c, s, bytes;
-    char buf[BUFSIZE];          /* buffer for incoming file */
-    struct hostent *h;          /* info about server */
-    struct sockaddr_in channel; /* holds IP address */
+    struct hostent *h;
+    struct sockaddr_in channel;
     if (argc != 9)
     {
         printf("Usage: client hostName id x y z vx vy vz\n");
@@ -94,7 +92,6 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    // Escutar mensagens do servidor
     while (1)
     {
         printf("on while\n");
@@ -105,7 +102,7 @@ int main(int argc, char **argv)
         printf("opcode = %d\n", msg.opcode);
         switch (msg.opcode)
         {
-        case 1: // "Quem está aí?"
+        case 1:
         {
             Message response;
             response.opcode = 1;
@@ -113,9 +110,6 @@ int main(int argc, char **argv)
             response.msg1_client.x = clientInfo.x;
             response.msg1_client.y = clientInfo.y;
             response.msg1_client.z = clientInfo.z;
-            //   response.msg1_client.vx = clientInfo.vx;
-            //   response.msg1_client.vy = clientInfo.vy;
-            //   response.msg1_client.vz = clientInfo.vz;
             write(s, &response, sizeof(response));
             break;
         }
