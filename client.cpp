@@ -94,12 +94,10 @@ int main(int argc, char **argv)
 
     while (1)
     {
-        printf("on while\n");
         Message msg;
         bytes = read(s, &msg, sizeof(Message));
         if (bytes <= 0)
             exit(0);
-        printf("opcode = %d\n", msg.opcode);
         switch (msg.opcode)
         {
         case 1:
