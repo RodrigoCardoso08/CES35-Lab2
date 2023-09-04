@@ -174,7 +174,7 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          updated_neighbor.vy = msg.msg2_client.vy;
          updated_neighbor.vz = msg.msg2_client.vz;
          UpdateNeighbor(neighbors, updated_neighbor);
-         printf("Updated message: id=%d, x=%f, y=%f, z=%f, vx=%f, vy=%f, vz=%f\n",
+         printf("Updated drone: id=%d, x=%f, y=%f, z=%f, vx=%f, vy=%f, vz=%f\n",
                 updated_neighbor.id, updated_neighbor.x, updated_neighbor.y, updated_neighbor.z,
                 updated_neighbor.vx, updated_neighbor.vy, updated_neighbor.vz);
          break;
@@ -184,7 +184,7 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          if (msg.msg3_client.success)
             printf("Reposicionamento realizado com sucesso!\n");
          else
-            printf("Falha no reposicionamento");
+            printf("Falha no reposicionamento\n");
          break;
       default:
          printf("Comando desconhecido \n");

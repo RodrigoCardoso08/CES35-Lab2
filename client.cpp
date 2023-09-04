@@ -113,17 +113,19 @@ int main(int argc, char **argv)
         }
         case 2:
         {
-            Message response;
-            response.opcode = 2;
-            response.msg2_client.droneId = clientInfo.id;
-            response.msg2_client.x = clientInfo.x;
-            response.msg2_client.y = clientInfo.y;
-            response.msg2_client.z = clientInfo.z;
-            response.msg2_client.vx = clientInfo.vx;
-            response.msg2_client.vy = clientInfo.vy;
-            response.msg2_client.vz = clientInfo.vz;
-            write(s, &response, sizeof(response));
-            break;
+            if(msg.msg2_server.targetDroneId == clientInfo.id){
+                Message response;
+                response.opcode = 2;
+                response.msg2_client.droneId = clientInfo.id;
+                response.msg2_client.x = clientInfo.x;
+                response.msg2_client.y = clientInfo.y;
+                response.msg2_client.z = clientInfo.z;
+                response.msg2_client.vx = clientInfo.vx;
+                response.msg2_client.vy = clientInfo.vy;
+                response.msg2_client.vz = clientInfo.vz;
+                write(s, &response, sizeof(response));
+                break;
+            }
         }
         case 3:
         {
