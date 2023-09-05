@@ -79,7 +79,6 @@ int main(int argc, char **argv)
         bytes = read(s, &msg, sizeof(Message));
         if (bytes <= 0)
             exit(0);
-        // printf("opcode = %d\n", msg.opcode);
          int opcode = msg.opcode;
 
         if (opcode == 1)
@@ -95,8 +94,6 @@ int main(int argc, char **argv)
         }
         else if (opcode == 2)
         {
-            // printf("msg.msg2_server.targetDroneId = %d\n", msg.msg2_server.targetDroneId);
-            // printf("clientInfo.id = %d\n", clientInfo.id);
             if (msg.msg2_server.targetDroneId == clientInfo.id)
             {
                 printf("Received message with opcode = %d\n", opcode);
@@ -109,7 +106,6 @@ int main(int argc, char **argv)
                 response.msg2_client.vx = clientInfo.vx;
                 response.msg2_client.vy = clientInfo.vy;
                 response.msg2_client.vz = clientInfo.vz;
-                // printf("response opcode = %d, clientinfoid = %d\n", response.opcode, response.msg2_client.droneId);
                 write(s, &response, sizeof(response));
             }
         }
@@ -124,7 +120,6 @@ int main(int argc, char **argv)
                 clientInfo.y += msg.msg3_server.dy;
                 clientInfo.z += msg.msg3_server.dz;
                 response.msg3_client.success = true;
-                // printf("response opcode = %d, clientinfoid = %d", response.opcode, response.msg3_server.targetDroneId);
                 write(s, &response, sizeof(response));
             }
         }
