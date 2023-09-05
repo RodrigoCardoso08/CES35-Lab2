@@ -237,13 +237,6 @@ int main(int argc, char *argv[])
       }
       printf("Client connected with sa = %d\n", sa);
       client_sockets.push_back(sa);
-      Message msg;
-      // int bytesRead = read(sa, &msg, sizeof(Message));
-      // if (bytesRead <= 0)
-      // {
-      //    printf("Client disconnected or error occurred.\n");
-      //    break;
-      // }
       client_threads.push_back(std::thread(handleClient, sa, std::ref(neighbors)));
    }
    userInputThread.join();
