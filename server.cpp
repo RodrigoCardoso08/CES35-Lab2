@@ -82,7 +82,7 @@ void handleUserInput(std::vector<int> &client_sockets)
       {
       case '1':
       {
-         Msg1_Server msg;
+         Message msg;
          msg.opcode = 1;
          for (int client_socket : client_sockets)
          {
@@ -94,9 +94,9 @@ void handleUserInput(std::vector<int> &client_sockets)
       {
          if (iss >> droneId)
          {
-            Msg2_Server msg;
+            Message msg;
             msg.opcode = 2;
-            msg.targetDroneId = droneId;
+            msg.msg2_server.targetDroneId = droneId;
             for (int client_socket : client_sockets)
             {
                write(client_socket, &msg, sizeof(msg));
@@ -112,12 +112,12 @@ void handleUserInput(std::vector<int> &client_sockets)
       {
          if (iss >> droneId >> dx >> dy >> dz)
          {
-            Msg3_Server msg;
+            Message msg;
             msg.opcode = 3;
-            msg.targetDroneId = droneId;
-            msg.dx = dx;
-            msg.dy = dy;
-            msg.dz = dz;
+            msg.msg3_server.targetDroneId = droneId;
+            msg.msg3_server.dx = dx;
+            msg.msg3_server.dy = dy;
+            msg.msg3_server.dz = dz;
             for (int client_socket : client_sockets)
             {
                write(client_socket, &msg, sizeof(msg));
@@ -148,9 +148,8 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          close(sa);
          return;
       }
-      switch (msg.opcode)
-      {
-      case 1:
+      int opcode = msg.opcode;
+      if (opcode == 1)
       {
          Neighbor new_neighbor;
          new_neighbor.id = msg.msg1_client.droneId;
@@ -159,11 +158,10 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          new_neighbor.z = msg.msg1_client.z;
          new_neighbor.is_active = true;
          UpdateOrInsertNeighbor(neighbors, new_neighbor);
-         printf("Received message: id=%d, x=%f, y=%f, z=%f\n",
+         printf("Neighbor: id=%d, x=%f, y=%f, z=%f\n",
                 new_neighbor.id, new_neighbor.x, new_neighbor.y, new_neighbor.z);
-         break;
       }
-      case 2:
+      else if (opcode == 2)
       {
          Neighbor updated_neighbor;
          updated_neighbor.id = msg.msg2_client.droneId;
@@ -174,28 +172,27 @@ void handleClient(int sa, std::vector<Neighbor> &neighbors)
          updated_neighbor.vy = msg.msg2_client.vy;
          updated_neighbor.vz = msg.msg2_client.vz;
          UpdateNeighbor(neighbors, updated_neighbor);
-         printf("Updated drone: id=%d, x=%f, y=%f, z=%f, vx=%f, vy=%f, vz=%f\n",
+         printf("Info about drone id=%d:\n x=%f\n y=%f\n z=%f\n vx=%f\n vy=%f\n vz=%f\n",
                 updated_neighbor.id, updated_neighbor.x, updated_neighbor.y, updated_neighbor.z,
                 updated_neighbor.vx, updated_neighbor.vy, updated_neighbor.vz);
-         break;
       }
-      break;
-      case 3:
+      else if (opcode == 3)
+      {
          if (msg.msg3_client.success)
             printf("Reposicionamento realizado com sucesso!\n");
          else
             printf("Falha no reposicionamento\n");
-         break;
-      default:
+      }
+      else
+      {
          printf("Comando desconhecido \n");
-         break;
       }
    }
 }
 
 int main(int argc, char *argv[])
 {
-   printf("Server Started! \n");
+   printf("Server Started! Waiting for client connection... \n");
    int s, b, l, fd, sa, bytes, on = 1;
    struct sockaddr_in channel;
 
@@ -238,15 +235,15 @@ int main(int argc, char *argv[])
          printf("accept failed");
          exit(-1);
       }
-      printf("sa = %d\n", sa);
+      printf("Client connected with sa = %d\n", sa);
       client_sockets.push_back(sa);
       Message msg;
-      int bytesRead = read(sa, &msg, sizeof(Message));
-      if (bytesRead <= 0)
-      {
-         printf("Client disconnected or error occurred.\n");
-         break;
-      }
+      // int bytesRead = read(sa, &msg, sizeof(Message));
+      // if (bytesRead <= 0)
+      // {
+      //    printf("Client disconnected or error occurred.\n");
+      //    break;
+      // }
       client_threads.push_back(std::thread(handleClient, sa, std::ref(neighbors)));
    }
    userInputThread.join();

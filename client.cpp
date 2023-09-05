@@ -49,32 +49,14 @@ int main(int argc, char **argv)
 
     h = gethostbyname(argv[1]);
     if (h)
-    {
         printf("Host name: %s\n", h->h_name);
-        printf("Address type: %s\n", (h->h_addrtype == AF_INET) ? "AF_INET" : "AF_INET6");
-        char **addr_list = h->h_addr_list;
-        for (int i = 0; addr_list[i] != NULL; i++)
-        {
-            struct in_addr *inaddr = (struct in_addr *)addr_list[i];
-            printf("IP Address #%d: %s\n", i, inet_ntoa(*inaddr));
-        }
-        char **alias_list = h->h_aliases;
-        for (int i = 0; alias_list[i] != NULL; i++)
-        {
-            printf("Alias #%d: %s\n", i, alias_list[i]);
-        }
-    }
     else
-    {
         printf("gethostbyname failed to locate %s\n", argv[1]);
-    }
-
     if (!h)
     {
         printf("gethostbyname failed to locate %s", argv[1]);
         exit(-1);
     }
-
     s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (s < 0)
     {
@@ -91,17 +73,18 @@ int main(int argc, char **argv)
         printf("connect failed");
         exit(-1);
     }
-
     while (1)
     {
         Message msg;
         bytes = read(s, &msg, sizeof(Message));
         if (bytes <= 0)
             exit(0);
-        switch (msg.opcode)
+        // printf("opcode = %d\n", msg.opcode);
+         int opcode = msg.opcode;
+
+        if (opcode == 1)
         {
-        case 1:
-        {
+            printf("Received message with opcode = %d\n", opcode);
             Message response;
             response.opcode = 1;
             response.msg1_client.droneId = clientInfo.id;
@@ -109,11 +92,14 @@ int main(int argc, char **argv)
             response.msg1_client.y = clientInfo.y;
             response.msg1_client.z = clientInfo.z;
             write(s, &response, sizeof(response));
-            break;
         }
-        case 2:
+        else if (opcode == 2)
         {
-            if(msg.msg2_server.targetDroneId == clientInfo.id){
+            // printf("msg.msg2_server.targetDroneId = %d\n", msg.msg2_server.targetDroneId);
+            // printf("clientInfo.id = %d\n", clientInfo.id);
+            if (msg.msg2_server.targetDroneId == clientInfo.id)
+            {
+                printf("Received message with opcode = %d\n", opcode);
                 Message response;
                 response.opcode = 2;
                 response.msg2_client.droneId = clientInfo.id;
@@ -123,26 +109,25 @@ int main(int argc, char **argv)
                 response.msg2_client.vx = clientInfo.vx;
                 response.msg2_client.vy = clientInfo.vy;
                 response.msg2_client.vz = clientInfo.vz;
+                // printf("response opcode = %d, clientinfoid = %d\n", response.opcode, response.msg2_client.droneId);
                 write(s, &response, sizeof(response));
-                break;
             }
         }
-        case 3:
+        else if (opcode == 3)
         {
             Message response;
             response.opcode = 3;
             if (msg.msg3_server.targetDroneId == clientInfo.id)
             {
+                printf("Received message with opcode = %d\n", opcode);
                 clientInfo.x += msg.msg3_server.dx;
                 clientInfo.y += msg.msg3_server.dy;
                 clientInfo.z += msg.msg3_server.dz;
                 response.msg3_client.success = true;
+                // printf("response opcode = %d, clientinfoid = %d", response.opcode, response.msg3_server.targetDroneId);
+                write(s, &response, sizeof(response));
             }
-            else
-                response.msg3_client.success = false;
-            write(s, &response, sizeof(response));
-            break;
         }
-        }
+        else printf("unkown opcode = %d", opcode);
     }
 }
