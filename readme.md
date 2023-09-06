@@ -1,8 +1,29 @@
-# Instruções para Configuração do Projeto
+# Instruções para Executar a aplicação
+
+## Executando o servidor
+- Abra o terminal na pasta dos arquivos server.exe e client.exe e execute o seguinte comando:
+    ```bash
+    ./server
+    ```
+## Executando o cliente
+- Abra um novo terminal na pasta dos arquivos server.exe e client.exe e execute o seguinte comando:
+    ```bash
+    ./client localhost 2 5 6 8 1 2 3
+    ```
+- O comando acima irá criar um cliente com os seguintes parâmetros: 
+    - hostName = localhost
+    - id = 2
+    - x = 5
+    - y = 6
+    - z = 8
+    - vx = 1
+    - vy = 2
+    - vz = 3
+# Instruções para Configuração do Projeto (Para desenvolvedores)
 
 ## Passos Iniciais
 
-1. Abra o terminal do WSL como administrador e execute o seguinte comando para abrir o editor de código:
+1. (Para usuários de Windows) Abra o terminal do WSL na raíz do projeto como administrador e execute o seguinte comando para abrir o editor de código:
     ```bash
     code .
     ```
